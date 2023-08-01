@@ -8,16 +8,19 @@ public class BirdScript : MonoBehaviour
     public float flapStrength;
     public LogicScript logic;
     public bool birdIsAlive = true;
-    public GameObject restWing;
-    public GameObject flapWing;
-    public bool wingFlapped = false;
-    public float flapRate = 50;
-    private float timer = 0;
+
+    private Animator animator;
+    private string currentState;
+
+    // animation
+    const string bird_idle = "bird_idle";
+    const string bird_flap = "bird_flap";
 
     // Start is called before the first frame update
     void Start()
     {
         logic = GameObject.FindGameObjectWithTag("Logic").GetComponent<LogicScript>();
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -26,32 +29,22 @@ public class BirdScript : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && birdIsAlive)
         {
             BirdRigidBody.velocity = Vector2.up * flapStrength;
-            wingFlap();
+            ChangeAnimationState(bird_flap);
         }
 
-        if (timer < flapRate && wingFlapped)
-        {
-            timer += Time.deltaTime;
-        }
-        else
-        {
-            resetWing();
-            timer = 0;
-        }
+        ChangeAnimationState(bird_idle);
     }
 
-    public void wingFlap()
+    void ChangeAnimationState(string newState)
     {
-        restWing.SetActive(false);
-        flapWing.SetActive(true);
-        wingFlapped = true;
-    }
+        // prevent same animation repetition
+        if (currentState == newState) return;
 
-    public void resetWing()
-    {
-        flapWing.SetActive(false);
-        restWing.SetActive(true);
-        wingFlapped = false;
+        //play animation
+        animator.Play(newState);
+
+        // reassign current state
+        currentState = newState;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
